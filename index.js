@@ -22,6 +22,7 @@ app.get("/", function (req, res) {
 // your first API endpoint...
 app.get("/api/:date", (req, res) => {
   const paramsDate = req.params.date;
+  //check if there is no date provided
   if (!paramsDate) {
     return res.status(401).json({ msg: "please provide date" });
   }
