@@ -14,21 +14,36 @@ app.use(cors({ optionsSuccessStatus: 200 })); // some legacy browsers choke on 2
 app.use(express.static("public"));
 app.use(express.json());
 
-// http://expressjs.com/en/starter/basic-routing.html
-app.get("/", function (req, res) {
-  res.sendFile(__dirname + "/views/index.html");
-});
-
-// your first API endpoint...
 app.get("/api/:date", (req, res) => {
   const paramsDate = req.params.date;
-  //check if there is no date provided
-  if (!paramsDate) {
-    return res.status(401).json({ msg: "please provide date" });
+
+  let dateObj;
+
+  // Check if paramsDate is a Unix timestamp (all digits)
+  if (!isNaN(paramsDate) && paramsDate.length === 10) {
+    // Convert Unix timestamp (in seconds) to a Date object
+    dateObj = new Date(parseInt(paramsDate) * 1000);
+  } else if (!isNaN(paramsDate) && paramsDate.length === 13) {
+    // If timestamp is in milliseconds
+    dateObj = new Date(parseInt(paramsDate));
+  } else {
+    // Attempt to parse it as a normal date string
+    dateObj = new Date(paramsDate);
   }
-  const utcDate = new Date(paramsDate).toUTCString();
-  const unixTimestamp = Math.floor(new Date(paramsDate).getTime() / 1000);
+
+  // Check if the date is valid
+  if (isNaN(dateObj.getTime())) {
+    return res.status(400).json({ msg: "Invalid date format" });
+  }
+
+  // Convert to UTC string
+  const utcDate = dateObj.toUTCString();
+
+  // Convert to Unix timestamp (in seconds)
+  const unixTimestamp = Math.floor(dateObj.getTime() / 1000);
+
   res.status(200).json({ unixTimestamp, utcDate });
+
   console.log("UTC Date:", utcDate);
   console.log("Unix Timestamp:", unixTimestamp);
 });
